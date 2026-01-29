@@ -7,55 +7,44 @@ import { TopicDetail } from './components/TopicDetail';
 import { PracticeView } from './components/PracticeView';
 import { AuthModal } from './components/AuthModal';
 import { CreateTopicModal } from './components/CreateTopicModal';
-import { User, Topic, View } from './types';
+import { useAuth } from './AuthContext';
+import { Topic, View } from './types';
 import { INITIAL_TOPICS } from './constants';
 
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, isAuthenticated, logout, loading } = useAuth();
   const [view, setView] = useState<View>(View.LANDING);
   const [topics, setTopics] = useState<Topic[]>(INITIAL_TOPICS);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCreateTopic, setShowCreateTopic] = useState(false);
 
-  // Persistence check
+  // Persistence check for topics
   useEffect(() => {
-    const savedUser = localStorage.getItem('interview-ai-user');
     const savedTopics = localStorage.getItem('interview-ai-topics');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      setView(View.DASHBOARD);
-    }
     if (savedTopics) {
       setTopics(JSON.parse(savedTopics));
     }
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('interview-ai-user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('interview-ai-user');
+    // If user is authenticated, show dashboard
+    if (isAuthenticated && !loading) {
+      setView(View.DASHBOARD);
     }
-  }, [user]);
+  }, [isAuthenticated, loading]);
 
   useEffect(() => {
     localStorage.setItem('interview-ai-topics', JSON.stringify(topics));
   }, [topics]);
 
-  const handleLoginSuccess = (name: string, email: string) => {
-    const newUser = {
-      name,
-      email,
-      avatar: `https://picsum.photos/seed/${email}/100/100`
-    };
-    setUser(newUser);
-    setShowAuthModal(false);
-    setView(View.DASHBOARD);
-  };
+  // Close auth modal when user becomes authenticated
+  useEffect(() => {
+    if (isAuthenticated && showAuthModal) {
+      setShowAuthModal(false);
+      setView(View.DASHBOARD);
+    }
+  }, [isAuthenticated, showAuthModal]);
 
   const handleLogout = () => {
-    setUser(null);
+    logout();
     setView(View.LANDING);
     setSelectedTopic(null);
   };
@@ -122,6 +111,15 @@ const App: React.FC = () => {
     }
   };
 
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       {view !== View.PRACTICE && (
@@ -146,8 +144,7 @@ const App: React.FC = () => {
 
       {showAuthModal && (
         <AuthModal 
-          onClose={() => setShowAuthModal(false)} 
-          onSuccess={handleLoginSuccess}
+          onClose={() => setShowAuthModal(false)}
         />
       )}
 

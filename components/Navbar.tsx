@@ -37,7 +37,12 @@ export const Navbar: React.FC<NavbarProps> = ({ user, currentView, onNavigate, o
             <img 
               src={user.avatar} 
               alt={user.name} 
-              className="w-10 h-10 rounded-full border-2 border-gray-100 object-cover"
+              className="w-10 h-10 rounded-full border-2 border-gray-100 object-cover shadow-sm hover:shadow-md transition-shadow"
+              onError={(e) => {
+                // Fallback to a default avatar if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=CB844E&color=fff&size=128`;
+              }}
             />
           </div>
         ) : (
