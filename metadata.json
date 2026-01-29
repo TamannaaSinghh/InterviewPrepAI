@@ -1,0 +1,8 @@
+{
+  "name": "InterviewPrep AI",
+  "description": "An AI-powered interview preparation platform that generates custom Q&As and deep-dive learning guides using Gemini.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
